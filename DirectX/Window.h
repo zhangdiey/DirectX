@@ -11,10 +11,13 @@ public:
 	bool isRun();
 	// Release the window
 	bool release();
+	// Get window size
+	RECT getClientWindowRect();
+	void setHWND(HWND hwnd);
 	// events
-	virtual void onCreate() = 0;
-	virtual void onUpdate() = 0;
-	virtual void onDestroyed();
+	virtual void onCreate();
+	virtual void onUpdate();
+	virtual void onDestroy();
 	~Window();
 protected:
 	HWND m_hwnd;

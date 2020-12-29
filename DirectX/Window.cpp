@@ -1,7 +1,5 @@
 #include "Window.h"
 
-Window* window = nullptr;
-
 Window::Window()
 {
 }
@@ -13,13 +11,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	case WM_CREATE:
 	{
 		// window will be created
+		Window* window = (Window*)((LPCREATESTRUCT)lparam)->lpCreateParams;
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)window);
+		window->setHWND(hwnd);
 		window->onCreate();
 		break;
 	}
 	case WM_DESTROY:
 	{
 		// window will be destroyed
-		window->onDestroyed();
+		Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+		window->onDestroy();
 		::PostQuitMessage(0);
 		break;
 	}
@@ -47,13 +49,10 @@ bool Window::init()
 	// if registration fails return false
 	if (!::RegisterClassEx(&wc))
 		return false;
-
-	if (!window)
-		window = this;
 	
 	// create the window
 	m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, L"MyWindowClass", L"DirectX", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
-		NULL, NULL, NULL, NULL);
+		NULL, NULL, NULL, this);
 
 	// if creation fails return false
 	if (!m_hwnd)
@@ -79,7 +78,7 @@ bool Window::broadcast()
 		DispatchMessage(&msg);
 	}
 
-	window->onUpdate();
+	this->onUpdate();
 
 	Sleep(0);
 		
@@ -100,7 +99,28 @@ bool Window::release()
 	return true;
 }
 
-void Window::onDestroyed()
+RECT Window::getClientWindowRect()
+{
+	RECT rc;
+	::GetClientRect(this->m_hwnd, &rc);
+
+	return rc;
+}
+
+void Window::setHWND(HWND hwnd)
+{
+	this->m_hwnd = hwnd;
+}
+
+void Window::onCreate()
+{
+}
+
+void Window::onUpdate()
+{
+}
+
+void Window::onDestroy()
 {
 	m_is_run = false;
 }
